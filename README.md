@@ -1,1 +1,1 @@
-# ASL-Webcam
+# ASL-Webcam Project
