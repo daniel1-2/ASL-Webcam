@@ -27,7 +27,7 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 cap = cv2.VideoCapture(0)
 
 #loading in the ML model
-model = tf.keras.models.load_model('/Users/daniel/Documents/Senior_Design_Project/model_SIBI.h5')
+model = tf.keras.models.load_model('model_SIBI.h5')
 
 # Hard Encode for the Prediction
 classes = {
@@ -204,9 +204,9 @@ with mp_hands.Hands(
                 cv2.imwrite('frame{:d}.jpg'.format(count), img)
 
                 #every 5 pictures are being sent to classification
-                if count % 150 == 0:
+                if count % 90 == 0:
                     ##SENDING IT TO THE MODEL TO PREDICT
-                    classified_letter = model_communication.model("/Users/daniel/Documents/Senior_Design_Project/" + path + "/frame{:d}.jpg".format(count), model)
+                    classified_letter = model_communication.model("frame{:d}.jpg".format(count), model)
 
                 ##writing the prediction on the camera
                 cv2.putText(imgFlipped, str(classified_letter),
@@ -216,11 +216,11 @@ with mp_hands.Hands(
 
                 cv2.imshow("Snapshot", imgFlipped)
 
-                count += 30 # i.e. at 30 fps, this advances one second
+                count += 30
                 cap.set(1, count)
                 #removing the picture every second
-                if (count >= 870) :
-                    os.remove('frame{:d}.jpg'.format(count - 870))
+                if (count >= 150) :
+                    os.remove('frame{:d}.jpg'.format(count - 150))
 
                 # Display the clicked frame for 2
                 # sec.You can increase time in
