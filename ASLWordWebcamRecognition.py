@@ -13,6 +13,7 @@ mp_hands = mp.solutions.hands
 
 """
 SUPER IMP: 
+
 MODEL WAS TRAINED ON RIGHT HANDED IMAGES
 """
 
@@ -21,12 +22,16 @@ MODEL WAS TRAINED ON RIGHT HANDED IMAGES
 
 TIMER = int(3)
 
+# SET THE COUNTDOWN TIMER
+# for simplicity we set it to 3
+# We can also take this as input
+TIMER = int(3)
+
 font = cv2.FONT_HERSHEY_SIMPLEX
 # Open the camera
 cap = cv2.VideoCapture(0)
 
 #loading in the ML model
-
 model = tf.keras.models.load_model('model_SIBI.h5')
 
 # Hard Encode for the Prediction
@@ -58,6 +63,7 @@ classes = {
     23:'Y'
 
 }
+
 
 def countdown(righthanded, prev, TIMER, font, position, path, STOP):
     #initiates the count down
@@ -188,6 +194,7 @@ def countdown(righthanded, prev, TIMER, font, position, path, STOP):
 
 
 #setting up MP Hands
+
 with mp_hands.Hands(
     model_complexity=0,
     min_detection_confidence=0.5,
@@ -195,8 +202,6 @@ with mp_hands.Hands(
 
     STOP = False
 
-
-    #setting up file path for webcam pictures
     if os.path.exists('Webcam_Pictures/'):
         #if the user already has a file path called Webcam_Pictures, we want to
         #create a unique new file path that they do not have
@@ -210,10 +215,12 @@ with mp_hands.Hands(
         
         imgFlipped = cv2.flip(img, 1)
 
+
         #putting mediapipe onto hands:
         imgFlipped.flags.writeable = False
         imgFlipped = cv2.cvtColor(imgFlipped, cv2.COLOR_BGR2RGB)
         results = hands.process(imgFlipped)
+
 
         imgFlipped.flags.writeable = True
         imgFlipped = cv2.cvtColor(imgFlipped, cv2.COLOR_RGB2BGR)
@@ -225,6 +232,7 @@ with mp_hands.Hands(
                     mp_hands.HAND_CONNECTIONS,
                     mp_drawing_styles.get_default_hand_landmarks_style(),
                     mp_drawing_styles.get_default_hand_connections_style())
+
 
         #Introduction Text on Screen
         position = ( (int) (img.shape[1]/2) - 450, (int) (img.shape[0]/2 - 100))
@@ -257,12 +265,8 @@ with mp_hands.Hands(
         elif keyInput == 27:
             break
 
-
-
-
 # close the camera
 cap.release()
-		
 
 # close all the opened windows
 cv2.destroyAllWindows() 
