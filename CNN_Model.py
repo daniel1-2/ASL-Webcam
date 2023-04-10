@@ -11,13 +11,14 @@ Usage example of MediaPipe Hands Solution API in Python (see also http://solutio
 
 #**
 
-#@title
-!pip install mediapipe 
-!pip install keras
 
 #**
 
+import extract_features
 # Import the much needed stuff for training
+import keras
+import datetime
+import time
 import pandas as pd
 import numpy as np
 import tensorflow as tf
@@ -29,299 +30,18 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from tensorflow.keras.utils import to_categorical
-from google.colab import drive
-from google.colab.patches import cv2_imshow 
 import tensorflow.keras
 # Make numpy values easier to read.
 np.set_printoptions(precision=3, suppress=True)
 
 # Checking Tensorflow Version
-tf.__version__
-
-#**
-
-from google.colab import drive
-drive.mount('/content/drive')
-os.getcwd()
-!mkdir MyDrive
-!mount --bind /content/drive/My\ Drive /content/MyDrive
 
 """#Extract Features Function:"""
 
-#**
 
-# Function to Extract Feature from images or Frame
-def extract_feature(input_image):
-    mp_hands = mp.solutions.hands # Loading solutions
-    mp_drawing = mp.solutions.drawing_utils 
-    image = cv.imread(input_image)
-
-    #image = cv2_imshow(image)
-    with mp_hands.Hands(static_image_mode=True, max_num_hands=2, min_detection_confidence=0.1) as hands:
-        while True:
-            results = hands.process(cv.flip(cv.cvtColor(image, cv.COLOR_BGR2RGB), 1))
-            image_height, image_width, _ = image.shape
-            # Print handedness (left v.s. right hand).
-            # Caution : Uncomment these print command will resulting long log of mediapipe log
-            #print(f'Handedness of {input_image}:')
-            #print(results.multi_handedness)
-
-            # Draw hand landmarks of each hand.
-            # Caution : Uncomment these print command will resulting long log of mediapipe log
-            #print(f'Hand landmarks of {input_image}:')
-            if not results.multi_hand_landmarks:
-                # Here we will set whole landmarks into zero as no handpose detected
-                # in a picture wanted to extract.
-                print("No handpose detected!")
-                # Wrist Hand
-                wristX = 0
-                wristY = 0
-                wristZ = 0
-                
-                # Thumb Finger
-                thumb_CmcX = 0
-                thumb_CmcY = 0
-                thumb_CmcZ = 0
-                
-                thumb_McpX = 0
-                thumb_McpY = 0
-                thumb_McpZ = 0
-                
-                thumb_IpX = 0
-                thumb_IpY = 0
-                thumb_IpZ = 0
-                
-                thumb_TipX = 0
-                thumb_TipY = 0
-                thumb_TipZ = 0
-
-                # Index Finger
-                index_McpX = 0
-                index_McpY = 0
-                index_McpZ = 0
-                
-                index_PipX = 0
-                index_PipY = 0
-                index_PipZ = 0
-                
-                index_DipX = 0
-                index_DipY = 0
-                index_DipZ = 0
-                
-                index_TipX = 0
-                index_TipY = 0
-                index_TipZ = 0
-
-                # Middle Finger
-                middle_McpX = 0
-                middle_McpY = 0
-                middle_McpZ = 0
-                
-                middle_PipX = 0
-                middle_PipY = 0
-                middle_PipZ = 0
-                
-                middle_DipX = 0
-                middle_DipY = 0
-                middle_DipZ = 0
-                
-                middle_TipX = 0
-                middle_TipY = 0
-                middle_TipZ = 0
-
-                # Ring Finger
-                ring_McpX = 0
-                ring_McpY = 0
-                ring_McpZ = 0
-                
-                ring_PipX = 0
-                ring_PipY = 0
-                ring_PipZ = 0
-                
-                ring_DipX = 0
-                ring_DipY = 0
-                ring_DipZ = 0
-                
-                ring_TipX = 0
-                ring_TipY = 0
-                ring_TipZ = 0
-
-                # Pinky Finger
-                pinky_McpX = 0
-                pinky_McpY = 0
-                pinky_McpZ = 0
-                
-                pinky_PipX = 0
-                pinky_PipY = 0
-                pinky_PipZ = 0
-                
-                pinky_DipX = 0
-                pinky_DipY = 0
-                pinky_DipZ = 0
-                
-                pinky_TipX = 0
-                pinky_TipY = 0
-                pinky_TipZ = 0
-                
-                # Set image to Zero
-                annotated_image = 0
-
-                # Return Whole Landmark and Image
-                print ("This is whole landmark and image")
-                return (wristX, wristY, wristZ,
-                        thumb_CmcX, thumb_CmcY, thumb_CmcZ,
-                        thumb_McpX, thumb_McpY, thumb_McpZ,
-                        thumb_IpX, thumb_IpY, thumb_IpZ,
-                        thumb_TipX, thumb_TipY, thumb_TipZ,
-                        index_McpX, index_McpY, index_McpZ,
-                        index_PipX, index_PipY, index_PipZ,
-                        index_DipX, index_DipY, index_DipZ,
-                        index_TipX, index_TipY, index_TipZ,
-                        middle_McpX, middle_McpY, middle_McpZ,
-                        middle_PipX, middle_PipY, middle_PipZ,
-                        middle_DipX, middle_DipY, middle_DipZ,
-                        middle_TipX, middle_TipY, middle_TipZ,
-                        ring_McpX, ring_McpY, ring_McpZ,
-                        ring_PipX, ring_PipY, ring_PipZ,
-                        ring_DipX, ring_DipY, ring_DipZ,
-                        ring_TipX, ring_TipY, ring_TipZ,
-                        pinky_McpX, pinky_McpY, pinky_McpZ,
-                        pinky_PipX, pinky_PipY, pinky_PipZ,
-                        pinky_DipX, pinky_DipY, pinky_DipZ,
-                        pinky_TipX, pinky_TipY, pinky_TipZ,
-                        annotated_image)
-            
-            annotated_image = cv.flip(image.copy(), 1)
-            for hand_landmarks in results.multi_hand_landmarks:
-                # Wrist Hand /  Pergelangan Tangan
-                wristX = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].x * image_width
-                wristY = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].y * image_height
-                wristZ = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].z
-
-                # Thumb Finger / Ibu Jari
-                thumb_CmcX = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_CMC].x * image_width
-                thumb_CmcY = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_CMC].y * image_height
-                thumb_CmcZ = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_CMC].z
-                
-                thumb_McpX = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_MCP].x * image_width
-                thumb_McpY = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_MCP].y * image_height
-                thumb_McpZ = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_MCP].z
-                
-                thumb_IpX = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_IP].x * image_width
-                thumb_IpY = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_IP].y * image_height
-                thumb_IpZ = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_IP].z
-                
-                thumb_TipX = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x * image_width
-                thumb_TipY = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].y * image_height
-                thumb_TipZ = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].z
-
-                # Index Finger / Jari Telunjuk
-                index_McpX = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].x * image_width
-                index_McpY = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y * image_height
-                index_McpZ = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].z
-                
-                index_PipX = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_PIP].x * image_width
-                index_PipY = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_PIP].y * image_height
-                index_PipZ = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_PIP].z
-                
-                index_DipX = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_DIP].x * image_width
-                index_DipY = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_DIP].y * image_height
-                index_DipZ = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_DIP].z
-                
-                index_TipX = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x * image_width
-                index_TipY = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y * image_height
-                index_TipZ = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].z
-
-                # Middle Finger / Jari Tengah
-                middle_McpX = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].x * image_width
-                middle_McpY = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].y * image_height
-                middle_McpZ = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].z
-                
-                middle_PipX = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_PIP].x * image_width
-                middle_PipY = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_PIP].y * image_height
-                middle_PipZ = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_PIP].z
-                
-                middle_DipX = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_DIP].x * image_width
-                middle_DipY = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_DIP].y * image_height
-                middle_DipZ = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_DIP].z
-                
-                middle_TipX = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].x * image_width
-                middle_TipY = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].y * image_height
-                middle_TipZ = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].z
-
-                # Ring Finger / Jari Cincin
-                ring_McpX = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].x * image_width
-                ring_McpY = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].y * image_height
-                ring_McpZ = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].z
-                
-                ring_PipX = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_PIP].x * image_width
-                ring_PipY = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_PIP].y * image_height
-                ring_PipZ = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_PIP].z
-                
-                ring_DipX = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_DIP].x * image_width
-                ring_DipY = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_DIP].y * image_height
-                ring_DipZ = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_DIP].z
-                
-                ring_TipX = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].x * image_width
-                ring_TipY = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].y * image_height
-                ring_TipZ = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].z
-
-                # Pinky Finger / Jari Kelingking
-                pinky_McpX = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].x * image_width
-                pinky_McpY = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].y * image_height
-                pinky_McpZ = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].z
-                
-                pinky_PipX = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_PIP].x * image_width
-                pinky_PipY = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_PIP].y * image_height
-                pinky_PipZ = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_PIP].z
-                
-                pinky_DipX = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_DIP].x * image_width
-                pinky_DipY = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_DIP].y * image_height
-                pinky_DipZ = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_DIP].z
-                
-                pinky_TipX = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].x * image_width
-                pinky_TipY = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].y * image_height
-                pinky_TipZ = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].z
-
-                # Draw the Skeleton
-                mp_drawing.draw_landmarks(annotated_image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-                
-            return (wristX, wristY, wristZ,
-                    thumb_CmcX, thumb_CmcY, thumb_CmcZ,
-                    thumb_McpX, thumb_McpY, thumb_McpZ,
-                    thumb_IpX, thumb_IpY, thumb_IpZ,
-                    thumb_TipX, thumb_TipY, thumb_TipZ,
-                    index_McpX, index_McpY, index_McpZ,
-                    index_PipX, index_PipY, index_PipZ,
-                    index_DipX, index_DipY, index_DipZ,
-                    index_TipX, index_TipY, index_TipZ,
-                    middle_McpX, middle_McpY, middle_McpZ,
-                    middle_PipX, middle_PipY, middle_PipZ,
-                    middle_DipX, middle_DipY, middle_DipZ,
-                    middle_TipX, middle_TipY, middle_TipZ,
-                    ring_McpX, ring_McpY, ring_McpZ,
-                    ring_PipX, ring_PipY, ring_PipZ,
-                    ring_DipX, ring_DipY, ring_DipZ,
-                    ring_TipX, ring_TipY, ring_TipZ,
-                    pinky_McpX, pinky_McpY, pinky_McpZ,
-                    pinky_PipX, pinky_PipY, pinky_PipZ,
-                    pinky_DipX, pinky_DipY, pinky_DipZ,
-                    pinky_TipX, pinky_TipY, pinky_TipZ,
-                    annotated_image)
 
 """#CSV Data Storage Function:
-
-Upload any image that contains hand(s) to the Colab. We took two examples from the web: https://unsplash.com/photos/QyCH5jwrD_A and https://unsplash.com/photos/mt2fyrdXxzk
-"""
-
-##**Upload your own images to test
-
-from google.colab import files
-
-uploaded = files.upload()
-
-"""Create CSV
-
+Create CSV
 """
 
 #Function to create CSV file or add dataset to the existed CSV file
@@ -426,9 +146,9 @@ def toCSV(filecsv, class_type,
 
 """#Annotation of Data and Storage of Annotated Data:"""
 
-csv_path = "/content/drive/MyDrive/Webcam_Project/Coding/ColabResources/csv_files/datafile.csv"
-training_data_path = "/content/drive/MyDrive/Webcam_Project/Coding/ColabResources/archive/SIBI_datasets_LEMLITBANG_SIBI_R_90.10_V02/SIBI_datasets_LEMLITBANG_SIBI_R_90.10_V02/training"
-validation_data_path = "/content/drive/MyDrive/Webcam_Project/Coding/ColabResources/archive/SIBI_datasets_LEMLITBANG_SIBI_R_90.10_V02/SIBI_datasets_LEMLITBANG_SIBI_R_90.10_V02/validation"
+csv_path = "data_archive/datafile.csv"
+training_data_path = "data_archive/asl_alphabet_train"
+validation_data_path = "data_archive/asl_alphabet_test"
 
 # Extract Feature for Training
 # We will using SIBI datasets version V02
@@ -464,7 +184,7 @@ for dirlist in os.listdir(training_data_path):
                  pinky_PipX, pinky_PipY, pinky_PipZ,
                  pinky_DipX, pinky_DipY, pinky_DipZ,
                  pinky_TipX, pinky_TipY, pinky_TipZ,
-                 annotated_image) = extract_feature(os.path.join(root, filename))
+                 annotated_image) = extract_features.extract_feature(os.path.join(root, filename))
             
                 if ((not wristX == 0) and (not wristY == 0)):
                     toCSV(csv_path, dirlist, 
@@ -498,7 +218,7 @@ print("===================Feature Extraction for TRAINING is Completed==========
 # Extract Feature for Validation
 # We will using SIBI datasets version V02
 
-csv_path2 = "/content/drive/MyDrive/Webcam_Project/Coding/ColabResources/csv_files/valdatafile.csv"
+csv_path2 = "data_archive/valdatafile.csv"
 
 for dirlist in os.listdir(validation_data_path):
     for root, directories, filenames in os.walk(os.path.join(validation_data_path, dirlist)):
@@ -527,7 +247,7 @@ for dirlist in os.listdir(validation_data_path):
                  pinky_PipX, pinky_PipY, pinky_PipZ,
                  pinky_DipX, pinky_DipY, pinky_DipZ,
                  pinky_TipX, pinky_TipY, pinky_TipZ,
-                 annotated_image) = extract_feature(os.path.join(root, filename))
+                 annotated_image) = extract_features.extract_feature(os.path.join(root, filename))
             
                 if ((not wristX == 0) and (not wristY == 0)):
                     toCSV(csv_path2, dirlist, 
@@ -564,25 +284,24 @@ print("===================Feature Extraction for VALIDATION is Completed========
 """
 
 # Read CSV file for Training the model using Pandas
-df_train = pd.read_csv("/content/drive/MyDrive/Webcam_Project/Coding/ColabResources/csv_files/datafile.csv", header=0, error_bad_lines=False)
+df_train = pd.read_csv("data_archive/datafile.csv", header=0, error_bad_lines=False)
 
 
 # First we must sort the values of the dataset according to the Alphabets
 df_train = df_train.sort_values(by=["class_type"]) #Every letter has a different class type. Sorts numerically.
 
-df_train
 
 """##Validation Data Loading:"""
 
 ##**Run from this point onwards
 
 # Read CSV file for Validation or Testing the Model using Pandas
-df_test = pd.read_csv("/content/drive/MyDrive/Webcam_Project/Coding/ColabResources/csv_files/valdatafile.csv", header=0,error_bad_lines=False)
+df_val = pd.read_csv("data_archive/valdatafile.csv", header=0,error_bad_lines=False)
 
 # First we must sort the values of the dataset according to the Alphabets
-df_test = df_test.sort_values(by=["class_type"])
+df_val = df_val.sort_values(by=["class_type"])
 
-df_test
+
 
 """##Data Configuration for Model Input"""
 
@@ -593,43 +312,32 @@ df_train["class_type"] = pd.Categorical(df_train["class_type"]) #Creates a 'cate
 df_train["class_type"] = df_train.class_type.cat.codes #Accesses the class type values, assigns a code to it
 #Later, this will correspond to the 0-26 A-Z letters
 
-df_test["class_type"] = pd.Categorical(df_test["class_type"])
-df_test["class_type"] = df_test.class_type.cat.codes
+df_val["class_type"] = pd.Categorical(df_val["class_type"])
+df_val["class_type"] = df_val.class_type.cat.codes
 
 # Copy Label and Feature for training
-y_train = df_train.pop("class_type") #Copies the df_test MINUS the class type indexes (i.e the landmarks)
+y_train = df_train.pop("class_type") #Copies the df_val MINUS the class type indexes (i.e the landmarks)
 x_train = df_train.copy()
 
-y_test = df_test.pop("class_type") #Same
-x_test = df_test.copy()
+y_val = df_val.pop("class_type") #Same
+x_val = df_val.copy()
 
 # Copied Features turn to Array by using NumPy
 x_train = np.array(x_train)
-x_test = np.array(x_test)
+x_val = np.array(x_val)
 
-#from re import X
-# Check Array Shape before transformation
-print(x_train.shape)
-print(x_test.shape)
 
 # Since the array shape is 1x10, we must turn it into 1x10x1 so we can feed it into the model
 x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
-x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
+x_val = np.reshape(x_val, (x_val.shape[0], x_val.shape[1], 1))
 
-# Check Array Shape after transformation
-print(x_train.shape)
-print(x_test.shape)
-
-# Check sample train and test features
-print(x_train[0])
-print(x_test[7])
 
 # Number of classes according standard American Language Alphabets
-num_classes = 26  ##DANIEL'S NOTE, THIS SHOULD BE CHANGED TO 24
+num_classes = 24
 
 # Using the Keras.Utils to put the label categorically 
 y_train = to_categorical(y_train, num_classes)
-y_test = to_categorical(y_test, num_classes)
+y_val = to_categorical(y_val, num_classes)
 
 """#Model and Training:"""
 
@@ -664,28 +372,24 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.Dense(num_classes, activation='softmax')])
 
 model.compile(loss = 'categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-model.summary()
+
 
 # Commented out IPython magic to ensure Python compatibility.
 #Setup for Tensorboard
 # %load_ext tensorboard
-
-import tensorflow as tf
-import datetime
-import time
 
 
 log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 #Check for GPU availability
-print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+# print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 # Commented out IPython magic to ensure Python compatibility.
 #Train the Model on the CPU for comparison
 # startTime = time.time()
 # with tf.device('/CPU:0'):
-#   model.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_test, y_test),callbacks=[tensorboard_callback])
+#   model.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_val, y_val),callbacks=[tensorboard_callback])
 # endTime = time.time()
 # print("Total Time Elapsed for CPU training:" )
 # print(endTime - startTime)
@@ -698,7 +402,7 @@ print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 #2: Edit->Notebook Settings -> GPU
 
 startTime = time.time()
-model.fit(x_train, y_train, epochs=1500, batch_size=32, validation_data=(x_test, y_test),callbacks=[tensorboard_callback])
+model.fit(x_train, y_train, epochs=1500, batch_size=32, validation_data=(x_val, y_val),callbacks=[tensorboard_callback])
 endTime = time.time()
 print("Total Time Elapsed with GPU Acceleration:" )
 print(endTime - startTime)
@@ -709,260 +413,6 @@ print(endTime - startTime)
 """##Saving Model"""
 
 #Saving the model into H5 system file
-save_model = "/content/drive/MyDrive/Webcam_Project/Coding/ColabResources/model_SIBI.h5"
+save_model = "full_data_set_model_ASL.h5"
 model.save(save_model)
 print("Model Saved into", save_model)
-
-"""#Using Model"""
-
-# Hard Encode for the Prediction
-classes = {
-    0: 'A',
-    1: 'B',
-    2: 'C',
-    3: 'D',
-    4: 'E',
-    5: 'F',
-    6: 'G',
-    7: 'H',
-    8: 'I',
-    9: 'K',
-    10: 'L',
-    11: 'M',
-    12: 'N',
-    13:'O',
-    14:'P',
-    15:'Q',
-    16:'R',
-    17:'S',
-    18:'T',
-    19:'U',
-    20:'V',
-    21:'W',
-    22:'X',
-    23:'Y'
-
-}
-
-# Directly from Imageset Dataset Testing
-#Load Image and do Feature Extraction
-#path_to_image = "/content/drive/MyDrive/Webcam_Project/Coding/ColabResources/archive/SIBI_datasets_LEMLITBANG_SIBI_R_90.10_V02/SIBI_datasets_LEMLITBANG_SIBI_R_90.10_V02/test/C (2).jpg"
-mona_test = "/content/drive/MyDrive/Webcam_Project/Coding/ColabResources/archive/SIBI_datasets_LEMLITBANG_SIBI_R_90.10_RAW/SIBI_datasets_LEMLITBANG_SIBI_R_90.10_RAW/training/Y/Y (11).jpg"
-(wristX, wristY, wristZ,
- thumb_CmcX, thumb_CmcY, thumb_CmcZ,
- thumb_McpX, thumb_McpY, thumb_McpZ,
- thumb_IpX, thumb_IpY, thumb_IpZ,
- thumb_TipX, thumb_TipY, thumb_TipZ,
- index_McpX, index_McpY, index_McpZ,
- index_PipX, index_PipY, index_PipZ,
- index_DipX, index_DipY, index_DipZ,
- index_TipX, index_TipY, index_TipZ,
- middle_McpX, middle_McpY, middle_McpZ,
- middle_PipX, middle_PipY, middle_PipZ,
- middle_DipX, middle_DipY, middle_DipZ,
- middle_TipX, middle_TipY, middle_TipZ,
- ring_McpX, ring_McpY, ring_McpZ,
- ring_PipX, ring_PipY, ring_PipZ,
- ring_DipX, ring_DipY, ring_DipZ,
- ring_TipX, ring_TipY, ring_TipZ,
- pinky_McpX, pinky_McpY, pinky_McpZ,
- pinky_PipX, pinky_PipY, pinky_PipZ,
- pinky_DipX, pinky_DipY, pinky_DipZ,
- pinky_TipX, pinky_TipY, pinky_TipZ,
- output_IMG) = extract_feature('/content/drive/MyDrive/Webcam_Project/Coding/ColabResources/archive/SIBI_datasets_LEMLITBANG_SIBI_R_90.10_RAW/SIBI_datasets_LEMLITBANG_SIBI_R_90.10_RAW/test/A (4).jpg')     #('/content/zayd')
-
-model = tf.keras.models.load_model('/content/drive/MyDrive/Webcam_Project/Coding/ColabResources/model_SIBI.h5')
-
-
-#print(wristX, wristY,
-#      thumb_CmcX, thumb_CmcY, thumb_McpX, thumb_McpY, thumb_IpX, thumb_IpY, thumb_TipX, thumb_TipY,
-#      index_McpX, index_McpY, index_PipX, index_PipY, index_DipX, index_DipY, index_TipX, index_TipY,
-#      middle_McpX, middle_McpY, middle_PipX, middle_PipY, middle_DipX, middle_DipY, middle_TipX, middle_TipY,
-#      ring_McpX, ring_McpY, ring_PipX, ring_PipY, ring_DipX, ring_DipY, ring_TipX, ring_TipY,
-#      pinky_McpX, pinky_McpY, pinky_PipX, pinky_PipY, pinky_DipX, pinky_DipY, pinky_TipX, pinky_TipY)
-plt.axis("on")
-plt.imshow(cv.cvtColor(output_IMG, cv.COLOR_BGR2RGB))
-plt.show()
-
-#Shape the image features into an 1x3 array.
-input_IMG = np.array([[[wristX], [wristY], [wristZ],
-                     [thumb_CmcX], [thumb_CmcY], [thumb_CmcZ],
-                     [thumb_McpX], [thumb_McpY], [thumb_McpZ],
-                     [thumb_IpX], [thumb_IpY], [thumb_IpZ],
-                     [thumb_TipX], [thumb_TipY], [thumb_TipZ],
-                     [index_McpX], [index_McpY], [index_McpZ],
-                     [index_PipX], [index_PipY], [index_PipZ],
-                     [index_DipX], [index_DipY], [index_DipZ],
-                     [index_TipX], [index_TipY], [index_TipZ],
-                     [middle_McpX], [middle_McpY], [middle_McpZ],
-                     [middle_PipX], [middle_PipY], [middle_PipZ],
-                     [middle_DipX], [middle_DipY], [middle_DipZ],
-                     [middle_TipX], [middle_TipY], [middle_TipZ],
-                     [ring_McpX], [ring_McpY], [ring_McpZ],
-                     [ring_PipX], [ring_PipY], [ring_PipZ],
-                     [ring_DipX], [ring_DipY], [ring_DipZ],
-                     [ring_TipX], [ring_TipY], [ring_TipZ],
-                     [pinky_McpX], [pinky_McpY], [pinky_McpZ],
-                     [pinky_PipX], [pinky_PipY], [pinky_PipZ],
-                     [pinky_DipX], [pinky_DipY], [pinky_DipZ],
-                     [pinky_TipX], [pinky_TipY], [pinky_TipZ]]])
-
-#print(input_IMG.shape)
-#print(input_IMG)
-
-#Print the Prediction
-predict_x = model.predict(input_IMG)
-#print(model.predict_classes(input_IMG))
-classes_x=np.argmax(predict_x,axis=1)
-print("The sign you are imaging is: \n")
-print(classes[classes_x[0]])
-
-#EXPERIMENTAL: Gradcam Heat Map
-
-from IPython.display import Image, display
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-
-last_conv_layer_name = "conv1d"
-
-def get_img_array(img_path, size):
-    # `img` is a PIL image of size 299x299
-    img = keras.preprocessing.image.load_img(img_path, target_size=size)
-    # `array` is a float32 Numpy array of shape (299, 299, 3)
-    array = keras.preprocessing.image.img_to_array(img)
-    # We add a dimension to transform our array into a "batch"
-    # of size (1, 299, 299, 3)
-    array = np.expand_dims(array, axis=0)
-    return array
-
-
-def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None):
-    # First, we create a model that maps the input image to the activations
-    # of the last conv layer as well as the output predictions
-    grad_model = tf.keras.models.Model(
-        [model.inputs], [model.get_layer(last_conv_layer_name).output, model.output]
-    )
-
-    # Then, we compute the gradient of the top predicted class for our input image
-    # with respect to the activations of the last conv layer
-    with tf.GradientTape() as tape:
-        last_conv_layer_output, preds = grad_model(img_array)
-        if pred_index is None:
-            pred_index = tf.argmax(preds[0])
-        class_channel = preds[:, pred_index]
-
-    # This is the gradient of the output neuron (top predicted or chosen)
-    # with regard to the output feature map of the last conv layer
-    grads = tape.gradient(class_channel, last_conv_layer_output)
-
-    # This is a vector where each entry is the mean intensity of the gradient
-    # over a specific feature map channel
-    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
-
-    # We multiply each channel in the feature map array
-    # by "how important this channel is" with regard to the top predicted class
-    # then sum all the channels to obtain the heatmap class activation
-    last_conv_layer_output = last_conv_layer_output[0]
-    heatmap = last_conv_layer_output @ pooled_grads[..., tf.newaxis]
-    heatmap = tf.squeeze(heatmap)
-
-    # For visualization purpose, we will also normalize the heatmap between 0 & 1
-    heatmap = tf.maximum(heatmap, 0) / tf.math.reduce_max(heatmap)
-    return heatmap.numpy()
-
-
-def save_and_display_gradcam(img_path, heatmap, alpha=0.4):
-    # Load the original image
-    img = keras.preprocessing.image.load_img(img_path)
-    img = keras.preprocessing.image.img_to_array(img)
-
-    # Rescale heatmap to a range 0-255
-    heatmap = np.uint8(255 * heatmap)
-
-    # Use jet colormap to colorize heatmap
-    cmap = cm.get_cmap("spring")
-
-    # Use RGB values of the colormap
-    cmap_colors = cmap(np.arange(256))[:, :3]
-    cmap_heatmap = cmap_colors[heatmap]
-
-    # Create an image with RGB colorized heatmap
-    cmap_heatmap = keras.preprocessing.image.array_to_img(cmap_heatmap)
-    cmap_heatmap = cmap_heatmap.resize((img.shape[1], img.shape[0]))
-    cmap_heatmap = keras.preprocessing.image.img_to_array(cmap_heatmap)
-
-    # Superimpose the heatmap on original image
-    superimposed_img = cmap_heatmap * alpha + img
-    superimposed_img = keras.preprocessing.image.array_to_img(superimposed_img)
-
-    # Display Grad CAM
-    display(superimposed_img)
-    
-
-# Code to plot colormap legend
-import matplotlib as mpl
-gradient = np.linspace(0, 1, 256)
-gradient = np.vstack((gradient, gradient))
-def plot_color_gradients(category, cmap_list):
-    # Create figure and adjust figure height to number of colormaps
-    nrows = len(cmap_list)
-    figh = 0.35 + 0.15 + (nrows + (nrows - 1) * 0.1) * 0.22
-    fig, axs = plt.subplots(nrows=nrows + 1, figsize=(6.4, figh*3))
-    fig.subplots_adjust(top=1 - 0.35 / figh, bottom=0.15 / figh,
-                        left=0.2, right=0.99)
-    axs[0].set_title(f'{category} colormap', fontsize=14)
-
-    for ax, name in zip(axs, cmap_list):
-        ax.imshow(gradient, aspect='auto', cmap=mpl.colormaps[name])
-        ax.text(-0.01, 0.5, name, va='center', ha='right', fontsize=10,
-                transform=ax.transAxes)
-
-    # Turn off *all* ticks & spines, not just the ones with colormaps.
-    for ax in axs:
-        ax.set_axis_off()
-
-# Prepare image
-
-
-img_path = "/content/drive/MyDrive/Webcam_Project/Coding/ColabResources/archive/SIBI_datasets_LEMLITBANG_SIBI_R_90.10_RAW/SIBI_datasets_LEMLITBANG_SIBI_R_90.10_RAW/test/A (4).jpg"
-
-
-
-# Remove last layer's softmax
-model.layers[-1].activation = None
-
-# Print what the top predicted class is
-prediction = np.argmax(model.predict(input_IMG), axis=-1)
-print("Prediction:", prediction)
-
-# Generate class activation heatmap
-heatmap = make_gradcam_heatmap(input_IMG, model, last_conv_layer_name)
-# heatmap = make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=1)
-
-save_and_display_gradcam(img_path, heatmap)
-plot_color_gradients('spring',
-                     ['spring'])
-
-#Create Augmented data 
-##DO NOT run every time 
-
-data_augmentation = tf.keras.Sequential([
-  layers.RandomFlip("horizontal_and_vertical"),
-  layers.RandomRotation(0.2),
-])
-i = 0 
-
-for dirlist in os.listdir(training_data_path):
-    for root, directories, filenames in os.walk(os.path.join(training_data_path, dirlist)):
-        for filename in filenames:
-                if (i==0): 
-                  image_name = os.path.join(root, filename)
-                  image = cv.imread(image_name)
-                  augmented = data_augmentation(image)
-                  i+=1
-                  image = tf.cast(tf.expand_dims(image, 0), tf.float32)
-                  plt.figure(figsize=(10, 10))
-                  for i in range(9):
-                    augmented_image = data_augmentation(image)
-                    ax = plt.subplot(3, 3, i + 1)
-                    plt.imshow(augmented_image[0])
