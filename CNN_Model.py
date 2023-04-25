@@ -14,6 +14,7 @@ Usage example of MediaPipe Hands Solution API in Python (see also http://solutio
 
 #**
 
+
 import extract_features
 # Import the much needed stuff for training
 import keras
@@ -185,7 +186,7 @@ for dirlist in os.listdir(training_data_path):
                  pinky_DipX, pinky_DipY, pinky_DipZ,
                  pinky_TipX, pinky_TipY, pinky_TipZ,
                  annotated_image) = extract_features.extract_feature(os.path.join(root, filename))
-            
+
                 if ((not wristX == 0) and (not wristY == 0)):
                     toCSV(csv_path, dirlist, 
                           wristX, wristY, wristZ,

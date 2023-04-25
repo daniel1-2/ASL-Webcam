@@ -11,12 +11,12 @@ training_data_path = "data_archive/asl_alphabet_train"
 image = cv2.imread("A1test.jpg")
 IMG_WIDTH = random.randint(1, 800)
 IMG_LENGTH= random.randint(1, 800)
-resized = tf.image.resize_with_pad(image, 100, 100)
+resized = tf.image.resize_with_crop_or_pad(image, 200, 200)
 resized = np.squeeze(resized)
-plt.imsave("resized12.png", resized)
-resized_big = tf.image.resize_with_pad(image, 50, 50)
+plt.imsave("resized12.jpg", resized)
+resized_big = tf.image.resize_with_crop_or_pad(image, 500, 500)
 resized_big = np.squeeze(resized_big)
-plt.imsave("resized_big12.png", resized_big)
+plt.imsave("resized_big12.jpg", resized_big)
 # for dirlist in os.listdir(training_data_path):
 #     for root, directories, filenames in os.walk(os.path.join(training_data_path, dirlist)):
 #         print("Inside Folder", dirlist, "Consist :", len(filenames), "Imageset")
